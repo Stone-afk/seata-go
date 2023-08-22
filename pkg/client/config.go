@@ -31,10 +31,11 @@ import (
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/rawbytes"
+	"github.com/seata/seata-go/pkg/discovery"
 
 	"github.com/seata/seata-go/pkg/datasource/sql"
 	"github.com/seata/seata-go/pkg/datasource/sql/undo"
-	"github.com/seata/seata-go/pkg/remoting/getty"
+	remoteConfig "github.com/seata/seata-go/pkg/remoting/config"
 	"github.com/seata/seata-go/pkg/rm"
 	"github.com/seata/seata-go/pkg/rm/tcc"
 	"github.com/seata/seata-go/pkg/tm"
@@ -76,12 +77,13 @@ type Config struct {
 	EnableAutoDataSourceProxy bool   `yaml:"enable-auto-data-source-proxy" json:"enable-auto-data-source-proxy,omitempty" koanf:"enable-auto-data-source-proxy"`
 	DataSourceProxyMode       string `yaml:"data-source-proxy-mode" json:"data-source-proxy-mode,omitempty" koanf:"data-source-proxy-mode"`
 
-	AsyncWorkerConfig sql.AsyncWorkerConfig `yaml:"async" json:"async" koanf:"async"`
-	TCCConfig         tcc.Config            `yaml:"tcc" json:"tcc" koanf:"tcc"`
-	ClientConfig      ClientConfig          `yaml:"client" json:"client" koanf:"client"`
-	GettyConfig       getty.Config          `yaml:"getty" json:"getty" koanf:"getty"`
-	TransportConfig   getty.TransportConfig `yaml:"transport" json:"transport" koanf:"transport"`
-	ServiceConfig     tm.ServiceConfig      `yaml:"service" json:"service" koanf:"service"`
+	AsyncWorkerConfig sql.AsyncWorkerConfig        `yaml:"async" json:"async" koanf:"async"`
+	TCCConfig         tcc.Config                   `yaml:"tcc" json:"tcc" koanf:"tcc"`
+	ClientConfig      ClientConfig                 `yaml:"client" json:"client" koanf:"client"`
+	GettyConfig       remoteConfig.Config          `yaml:"getty" json:"getty" koanf:"getty"`
+	TransportConfig   remoteConfig.TransportConfig `yaml:"transport" json:"transport" koanf:"transport"`
+	ServiceConfig     discovery.ServiceConfig      `yaml:"service" json:"service" koanf:"service"`
+	RegistryConfig    discovery.RegistryConfig     `yaml:"registry" json:"registry" koanf:"registry"`
 }
 
 func (c *Config) RegisterFlags(f *flag.FlagSet) {
@@ -98,6 +100,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 	c.ClientConfig.RegisterFlagsWithPrefix("client", f)
 	c.GettyConfig.RegisterFlagsWithPrefix("getty", f)
 	c.TransportConfig.RegisterFlagsWithPrefix("transport", f)
+	c.RegistryConfig.RegisterFlagsWithPrefix("registry", f)
 	c.ServiceConfig.RegisterFlagsWithPrefix("service", f)
 }
 

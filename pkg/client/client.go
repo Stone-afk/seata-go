@@ -23,7 +23,9 @@ import (
 	"github.com/seata/seata-go/pkg/datasource"
 	at "github.com/seata/seata-go/pkg/datasource/sql"
 	"github.com/seata/seata-go/pkg/datasource/sql/exec/config"
+	"github.com/seata/seata-go/pkg/discovery"
 	"github.com/seata/seata-go/pkg/integration"
+	remoteConfig "github.com/seata/seata-go/pkg/remoting/config"
 	"github.com/seata/seata-go/pkg/remoting/getty"
 	"github.com/seata/seata-go/pkg/remoting/processor/client"
 	"github.com/seata/seata-go/pkg/rm"
@@ -40,7 +42,7 @@ func Init() {
 // InitPath init client with config path
 func InitPath(configFilePath string) {
 	cfg := LoadPath(configFilePath)
-
+	initRegistry(cfg)
 	initRmClient(cfg)
 	initTmClient(cfg)
 	initDatasource()
@@ -50,6 +52,7 @@ var (
 	onceInitTmClient   sync.Once
 	onceInitRmClient   sync.Once
 	onceInitDatasource sync.Once
+	onceInitRegistry   sync.Once
 )
 
 // InitTmClient init client tm client
@@ -61,11 +64,12 @@ func initTmClient(cfg *Config) {
 
 // initRemoting init rpc client
 func initRemoting(cfg *Config) {
-	getty.InitRpcClient(&cfg.GettyConfig, &getty.SeataConfig{
+	getty.InitRpcClient(&cfg.GettyConfig, &remoteConfig.SeataConfig{
 		ApplicationID:        cfg.ApplicationID,
 		TxServiceGroup:       cfg.TxServiceGroup,
 		ServiceVgroupMapping: cfg.ServiceConfig.VgroupMapping,
 		ServiceGrouplist:     cfg.ServiceConfig.Grouplist,
+		LoadBalanceType:      cfg.GettyConfig.LoadBalanceType,
 	})
 }
 
@@ -91,5 +95,11 @@ func initRmClient(cfg *Config) {
 func initDatasource() {
 	onceInitDatasource.Do(func() {
 		datasource.Init()
+	})
+}
+
+func initRegistry(cfg *Config) {
+	onceInitRegistry.Do(func() {
+		discovery.InitRegistry(&cfg.ServiceConfig, &cfg.RegistryConfig)
 	})
 }
